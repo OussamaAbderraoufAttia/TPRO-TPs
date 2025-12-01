@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TP2: PVC - Suite Complète</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js pour les graphiques interactifs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- MODAL (POPUP) pour voir les graphes du benchmark -->
+    <div id="graphModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3>Détail du Test (n=<span id="modalN"></span>)</h3>
+            <div class="modal-body">
+                <canvas id="modalCanvas" width="500" height="400"></canvas>
+                <div class="modal-stats">
+                    <p>Coût Min: <strong id="modalCost"></strong></p>
+                    <p>Chemin: <span id="modalPath"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="logo">TP2 - Algorithmique Avancée</div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('visualizer')">1. Éditeur</button>
+            <button class="tab-btn" onclick="switchTab('race')">2. Duel (Comparaison)</button>
+            <button class="tab-btn" onclick="switchTab('benchmark')">3. Benchmark & Stats</button>
+        </div>
+    </nav>
+
+    <div class="main-content">
+
+        <!-- ONGLET 1 : ÉDITEUR ET VISUALISATION UNIQUE -->
+        <section id="visualizer" class="tab-content active">
+            <div class="toolbar">
+                <div class="group">
+                    <button class="btn primary" onclick="setMode('add')">📍 Ajouter Ville</button>
+                    <button class="btn" onclick="setMode('edit')">✏️ Modifier Coût</button>
+                    <button class="btn danger" onclick="clearGraph()">🗑️ Reset</button>
+                </div>
+                <div class="group slider-group">
+                    <label>Vitesse Animation :</label>
+                    <input type="range" id="speedRange" min="1" max="500" value="60">
+                </div>
+            </div>
+
+            <div class="workspace">
+                <div class="canvas-wrapper">
+                    <canvas id="mainCanvas" width="800" height="500"></canvas>
+                    <div class="overlay-info">Cliquez pour ajouter des villes</div>
+                </div>
+                <div class="sidebar">
+                    <h3>Contrôles</h3>
+                    <button class="btn-run bf" onclick="runSingleAlgo('bf')">▶ Force Brute</button>
+                    <button class="btn-run dp" onclick="runSingleAlgo('dp')">▶ Bellman-Held-Karp</button>
+                    <div class="console-log" id="consoleLog"></div>
+                    <div class="live-stats">
+                        <p>Coût: <strong id="singleCost">-</strong></p>
+                        <p>Temps: <span id="singleTime">-</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ONGLET 2 : DUEL (RACE MODE) -->
+        <section id="race" class="tab-content">
+            <div class="race-header">
+                <h2>Duel en Temps Réel</h2>
+                <p>Lancez les deux algorithmes simultanément sur le graphe que vous avez dessiné.</p>
+                <button class="btn big-start" onclick="startRace()">🏁 DÉMARRER LA COURSE</button>
+            </div>
+            
+            <div class="race-track">
+                <!-- Côté Force Brute -->
+                <div class="racer-panel">
+                    <h3>Force Brute (O(n!))</h3>
+                    <div class="canvas-wrapper small">
+                        <canvas id="raceCanvasBF" width="400" height="300"></canvas>
+                    </div>
+                    <div class="racer-stats" id="statsBF">
+                        Status: <span class="status waiting">En attente</span><br>
+                        Chemin testé: <span class="current-p">-</span><br>
+                        Temps: <span class="time">-</span>
+                    </div>
+                </div>
+
+                <!-- Côté DP -->
+                <div class="racer-panel">
+                    <h3>Bellman-Held-Karp (DP)</h3>
+                    <div class="canvas-wrapper small">
+                        <canvas id="raceCanvasDP" width="400" height="300"></canvas>
+                    </div>
+                    <div class="racer-stats" id="statsDP">
+                        Status: <span class="status waiting">En attente</span><br>
+                        Calcul: <span class="current-p">Mémoire...</span><br>
+                        Temps: <span class="time">-</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ONGLET 3 : BENCHMARK -->
+        <section id="benchmark" class="tab-content">
+            <div class="benchmark-header">
+                <h2>Analyse de Performance (N=3 à 12)</h2>
+                <button class="btn primary big" onclick="runBenchmark()">🚀 Lancer le Benchmark</button>
+                <p class="hint">Cliquez sur une ligne du tableau pour voir le graphe correspondant.</p>
+            </div>
+
+            <div class="charts-area">
+                <div class="chart-container">
+                    <canvas id="myChart"></canvas>
+                </div>
+                <div class="table-container">
+                    <table id="statsTable">
+                        <thead>
+                            <tr>
+                                <th>N</th>
+                                <th>Force Brute (ms)</th>
+                                <th>DP (ms)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
