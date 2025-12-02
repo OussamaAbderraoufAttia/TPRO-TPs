@@ -19,30 +19,6 @@ Il présente des implémentations en **C** — privilégié pour ses performance
 
 ---
 
-## 🌳 Structure du Dépôt
-
-L'organisation du dépôt est pensée pour séparer clairement les différents TPs ainsi que leurs rapports associés.
-
-TPRO-Repo/
-├── TP1-ShortestCycle/
-│ ├── C/
-│ │ └── main.c # Calcul du plus court cycle (maille) via BFS.
-│ └── WebVisualisation/
-│ ├── index.html # Interface utilisateur.
-│ ├── script.js # Algorithme BFS + rendu Canvas.
-│ └── style.css # Thème et mise en forme.
-│
-├── TP2-TSP/
-│ └── main.c # Held-Karp (PD) & Force Brute pour le PVC.
-│
-├── Reports/
-│ ├── TPRO - ATTIA SRAICH - TP1.pdf
-│ └── TPRO - ATTIA SRAICH - TP2.pdf
-│
-└── README.md
-
----
-
 ## 🧪 Contenu des Travaux Pratiques
 
 ### **TP1 – Détection du Plus Court Cycle (Maille du Graphe)**  
