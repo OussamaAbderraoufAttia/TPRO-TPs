@@ -1,2 +1,6 @@
 .history
 .vscode
+conio2.h
+conio.c
+*.exe
+*.o
