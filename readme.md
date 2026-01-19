@@ -47,6 +47,21 @@ Les rapports PDF du TP synthétisent l’analyse théorique et expérimentale.
 
 ---
 
+### **TP4 – Le Problème du Taquin 15**  
+**Objectif :** Résoudre le puzzle du Taquin 15 en optimisant la recherche heuristique.  
+
+**Algorithmes :**  
+- **A* (A-Star)** avec file de priorité optimisée (**Min-Heap**).
+- **Weighted A* (WA*)** pour équilibrer optimalité et rapidité.  
+- **Heuristiques :** Manhattan Distance et Jetons mal placés.
+
+L'implémentation inclut :
+- une version haute performance en **C** avec benchmarking et CUI (\texttt{conio2.h}),
+- une version **Web interactive** pour la visualisation pas à pas,
+- une analyse détaillée de l'impact des poids $p$ et de la qualité des heuristiques.
+
+---
+
 ## 📌 Remarques
 
 Ce dépôt est pensé comme un support académique combinant :
