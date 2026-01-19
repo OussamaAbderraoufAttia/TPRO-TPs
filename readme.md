@@ -1,4 +1,4 @@
-# 📂 TPRO – Travaux Pratiques : Algorithmes & Optimisation
+# TPRO – Travaux Pratiques : Algorithmes & Optimisation
 
 ## Introduction
 
@@ -7,7 +7,7 @@ Il présente des implémentations en **C** — privilégié pour ses performance
 
 ---
 
-## ℹ️ Informations Administratives
+## Informations Administratives
 
 **Module :** Théorie de Programmation et Recherche Opérationnelle (TPRO)  
 **Année Universitaire :** 2025–2026  
@@ -19,7 +19,7 @@ Il présente des implémentations en **C** — privilégié pour ses performance
 
 ---
 
-## 🧪 Contenu des Travaux Pratiques
+## Contenu des Travaux Pratiques
 
 ### **TP1 – Détection du Plus Court Cycle (Maille du Graphe)**  
 **Objectif :** Déterminer la longueur du cycle simple minimal dans un graphe non orienté.  
