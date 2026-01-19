@@ -424,7 +424,7 @@ async function runBenchmark() {
     // Initialiser le graph vide
     updateChart([], [], []);
 
-    for(let n = 3; n <= 20; n++) {
+    for(let n = 3; n <= 10; n++) {
         // Générer random
         let mat = [], pos = [];
         for(let i=0; i<n; i++) {

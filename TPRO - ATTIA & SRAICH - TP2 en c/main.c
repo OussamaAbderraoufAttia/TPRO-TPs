@@ -128,7 +128,8 @@ long long tsp_exact(long long **d, int n) {
 /* Held-Karp: dp[mask][j] = coût minimal pour partir de 0, visiter l'ensemble 'mask' (qui contient 0),
  * et finir en j (j dans mask). mask est représenté par entiers 0..(1<<n)-1.
  *
- * On n'inclut jamais la ville 0 dans la partie "liste des finis" explicitement: ici on conserve 0 dans mask pour simplicité.
+ * On n'inclut jamais la ville 0 dans la partie "liste des finis" explicitement: ici on conserve 0 dans mask 
+ * pour simplicité.
  *
  * Complexité: O(n^2 * 2^n) en temps et O(n * 2^n) en mémoire.
  */

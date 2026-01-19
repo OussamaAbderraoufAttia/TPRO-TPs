@@ -1,0 +1,255 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+
+% Configuration de la géométrie
+\geometry{margin=2.5cm}
+
+% Couleurs personnalisées
+\definecolor{esi_blue}{RGB}{30, 41, 59}
+\definecolor{esi_accent}{RGB}{59, 130, 246}
+\definecolor{code_bg}{RGB}{241, 245, 249}
+
+% Configuration des listings (code)
+\lstset{
+    backgroundcolor=\color{code_bg},
+    basicstyle=\small\ttfamily,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{orange},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=10pt,
+    frame=single,
+    rulecolor=\color{gray!30},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=2,
+    captionpos=b
+}
+
+% En-tête et pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{TP4 : Taquin 15}
+\lhead{TPRO - 2025/2026}
+\cfoot{\thepage}
+
+\begin{document}
+
+% --- Page de Garde ---
+\begin{titlepage}
+    \centering
+    \includegraphics[width=5cm]{esi_logo.png}\\[1cm]
+    
+    {\large \textbf{République Algérienne Démocratique et Populaire}}\\[0.2cm]
+    {\small Ministère de l'Enseignement Supérieur et de la Recherche Scientifique}\\[1.5cm]
+    
+    {\huge \textbf{Rapport de Travaux Pratiques}}\\[0.5cm]
+    {\Large Module : TPRO}\\[2.5cm]
+    
+    \begin{tcolorbox}[colframe=black, colback=white, boxrule=0.5mm, arc=0mm, top=10pt, bottom=10pt]
+        \centering
+        {\huge \textbf{TP4 : Le Problème du Taquin 15}}\\[0.4cm]
+        {\Large Algorithme A* et WA* (Weighted A*)}\\[0.3cm]
+        \textit{Optimisation par Tas Binaire et Distance de Manhattan}
+    \end{tcolorbox}\\[2.5cm]
+    
+    \begin{minipage}{0.45\textwidth}
+        \flushleft \large
+        \textbf{Réalisé par le binôme :}\\
+        \textbf{ATTIA Oussama Abderraouf}\\
+        \textbf{SRAICH Imene}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \flushright \large
+        \textbf{Encadré par :}\\
+        \textbf{M. HADIM Boukhalfa}
+    \end{minipage}\\[3.5cm]
+    
+    \vfill
+    {\large Année Universitaire : 2025 - 2026}
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+Le problème du Taquin (15-puzzle) est un défi classique en intelligence artificielle et en théorie des graphes. Il s'agit de transformer une configuration de 15 jetons sur une grille de $4 \times 4$ d'un état désordonné à un état ordonné. L'espace de recherche total pour ce problème est de $16! / 2$, soit plus de 10 trillions d'états possibles, ce qui rend l'utilisation d'algorithmes de recherche aveugle totalement inefficace.
+
+Ce TP se concentre sur l'implémentation de l'algorithme \textbf{A* (A-Star)} et de sa version pondérée \textbf{WA* (Weighted A*)}, en mettant l'accent sur l'optimisation des performances par l'utilisation d'une structure de \textbf{Tas Binaire (Min-Heap)} pour la file de priorité et de la \textbf{Distance de Manhattan} comme fonction heuristique.
+
+\section{Conception Technique et Implémentation}
+
+\subsection{Représentation de l'Espace d'États}
+Chaque état du puzzle est représenté par une structure de données optimisée en langage C. La grille elle-même est stockée dans un tableau de caractères de $4 \times 4$ pour économiser de la mémoire.
+
+\begin{lstlisting}[language=C, caption=Structure d'un nœud de recherche]
+typedef char conf[4][4];
+
+struct noeud {
+    conf m;       // Configuration du puzzle
+    int g;        // Coût réel pour atteindre cet état
+    int h;        // Estimation heuristique du coût restant
+    double cout;  // f(x) = g(x) + p * h(x)
+    struct noeud *pere; // Pointeur pour reconstruire le chemin
+};
+\end{lstlisting}
+
+\subsection{Optimisation de la File de Priorité : Min-Heap}
+L'un des goulots d'étranglement majeurs de l'algorithme A* est la recherche du nœud ayant la plus petite valeur de $f(x)$ dans la liste des nœuds ouverts (la frontière). Pour passer d'une recherche linéaire en $O(N)$ à une recherche logarithmique en $O(\log N)$, nous avons implémenté un Tas Binaire.
+
+\begin{itemize}
+    \item \textbf{HeapPush :} Insère un nouvel élément et maintient la propriété du tas en "faisant remonter" le nœud ($bubbleUp$).
+    \item \textbf{HeapPop :} Extrait la racine (le minimum) et réorganise le tas en "faisant descendre" le nouvel élément racine ($bubbleDown$).
+\end{itemize}
+
+Cette optimisation permet de gérer des millions de nœuds sans dégradation significative des performances.
+
+\subsection{Fonctions Heuristiques}
+Nous avons implémenté deux types d'heuristiques pour guider la recherche :
+
+\subsubsection{Nombre de Jetons Mal Placés (Misplaced Tiles)}
+Cette heuristique compte simplement le nombre de jetons $i$ tels que $pos\_actuelle(i) \neq pos\_but(i)$. Elle est simple mais manque de précision car elle ne tient pas compte de la distance physique entre les positions.
+
+\subsubsection{Distance de Manhattan}
+Elle calcule la somme des distances de $L_1$ pour chaque jeton :
+\[ h(x) = \sum_{i=1}^{15} |x_i - target\_x_i| + |y_i - target\_y_i| \]
+Cette heuristique est beaucoup plus informative car elle représente le nombre minimal de mouvements nécessaires pour amener chaque jeton à sa place si les autres jetons ne bloquaient pas le passage.
+
+\subsection{Algorithme Weighted A* (WA*)}
+Le paramètre $p$ permet d'ajuster le comportement de l'algorithme. Si $p=1$, on obtient l'algorithme A* standard qui garantit une solution optimale si l'heuristique est admissible. Si $p > 1$, l'algorithme devient "Greedy" (plus gourmand), ce qui réduit souvent drastiquement le nombre de nœuds explorés au prix d'une perte de l'optimalité.
+
+\subsection{Pseudo-code de l'Algorithme A*}
+Le fonctionnement de notre moteur de recherche peut être résumé par le pseudo-code suivant, mettant en évidence l'interaction avec le Tas Binaire.
+
+\begin{lstlisting}[language=C, caption=Pseudo-code de la boucle principale A*]
+Fonction A_Star(EtatInitial, But):
+    Frontiere = CreerTasMin()
+    Visites = CreerEnsembleVide()
+    
+    EtatInitial.f = g(Initial) + p * h(Initial)
+    Frontiere.Push(EtatInitial)
+    
+    Tant que Frontiere non vide:
+        n = Frontiere.Pop() // Extrait le min en O(log N)
+        
+        Si n est l'EtatBut:
+            Retourner ReconstruireChemin(n)
+            
+        Ajouter n.id a Visites
+        
+        Pour chaque voisin m de n:
+            Si m.id dans Visites: Continuer
+            
+            m.g = n.g + 1
+            m.f = m.g + p * h(m)
+            m.pere = n
+            
+            Frontiere.Push(m) // O(log N)
+\end{lstlisting}
+
+\subsection{Architecture du Code C}
+Le programme est structuré de manière modulaire pour faciliter la maintenance et la lisibilité. Voici les rôles des principales fonctions :
+
+\begin{itemize}
+    \item \texttt{HeapPush / HeapPop} : Implémentent la logique du Tas Binaire pour maintenir la frontière en $O(\log N)$.
+    \item \texttt{h\_manhattan / h\_misplaced} : Calculent les estimations heuristiques pour orienter la recherche.
+    \item \texttt{run\_WA\_star} : Le cœur de l'algorithme, gérant la boucle de recherche, l'expansion des voisins et la collecte des métriques.
+    \item \texttt{exists\_in\_path} : Gère le "Closed Set" par une remontée des parents, évitant les cycles sans surcoût de mémoire.
+    \item \texttt{main} : Configure les instances de test, lance les benchmarks et affiche le tableau des résultats.
+\end{itemize}
+
+\subsection{Admissibilité et Consistance}
+Pour que l'algorithme A* garantisse l'optimalité, la fonction heuristique doit être \textbf{admissible}. Une heuristique $h$ est admissible si $\forall n, h(n) \le h^*(n)$, où $h^*(n)$ est le coût réel minimal de $n$ au but.
+
+\begin{itemize}
+    \item \textbf{Jetons mal placés :} Elle est admissible car chaque jeton mal placé devra être déplacé au moins une fois. $h_{tiles}(n) \le h^*(n)$.
+    \item \textbf{Distance de Manhattan :} Elle est également admissible car chaque jeton doit parcourir au moins sa distance de Manhattan pour atteindre sa cible. Comme $h_{manhattan}(n) \ge h_{tiles}(n)$, elle est plus "informée", ce qui explique la réduction du nombre de nœuds observée.
+\end{itemize}
+
+\subsection{Solvabilité et Inversions}
+Le Taquin 15 possède une particularité théorique majeure : toutes les configurations initiales ne sont pas solvables. Pour garantir que notre algorithme termine sur une solution, il est crucial de comprendre le concept d'\textbf{inversions}.
+
+Une inversion est une paire de jetons $(a, b)$ telle que $a > b$ mais $a$ apparaît avant $b$ dans la grille (en lecture ligne par ligne). La parité de la somme des inversions ainsi que la position de la case vide déterminent la solvabilité :
+\begin{itemize}
+    \item Si la largeur de la grille est impaire, l'état est solvable si le nombre d'inversions est pair.
+    \item Pour notre grille de 4x4 (paire), la règle est la suivante : si la case vide est sur une ligne dont la distance au bas est impaire, alors le nombre d'inversions doit être pair (et inversement).
+\end{itemize}
+Notre implémentation traite cet aspect en utilisant des configurations initiales connues comme étant solvables (ex: \texttt{init1}, \texttt{init2}).
+
+\subsection{Cout des Opérations du Tas}
+L'efficacité du tas binaire est le moteur de la rapidité de notre solveur. Voici la comparaison des complexités temporelles pour une frontière de taille $N$:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|}
+\hline
+\rowcolor{esi_accent!10} \textbf{Opération} & \textbf{Version Naïve} & \textbf{Version Min-Heap} \\ \hline
+Enfiler (Push) & $O(1)$ & $O(\log N)$ \\ \hline
+Extraire Min (Pop) & $O(N)$ & $O(\log N)$ \\ \hline
+\end{tabular}
+\caption{Gain algorithmique de la structure de Tas}
+\end{table}
+
+\section{Résultats Expérimentaux}
+
+Les tests ont été réalisés sur une machine de développement standard en utilisant le compilateur GCC avec l'option d'optimisation \texttt{-O3}.
+
+\subsection{Tableau Comparatif des Performances}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|c|r|c|c|}
+\hline
+\rowcolor{esi_accent!20} \textbf{Algo (p)} & \textbf{Heuristique} & \textbf{Temps (s)} & \textbf{Nœuds} & \textbf{Frontière} & \textbf{Depth} \\ \hline
+A*         & Tiles        & 0.0050 & 1891 & 2108 & 18 \\ \hline
+\rowcolor{blue!5} A*         & Manhattan    & 0.0000 & 191  & 219  & 18 \\ \hline
+WA*(1.5)   & Tiles        & 0.0020 & 1652 & 1872 & 18 \\ \hline
+\rowcolor{green!10} WA*(1.5)   & Manhattan    & 0.0000 & 105  & 127  & 18 \\ \hline
+WA*(3.0)   & Manhattan    & 0.0010 & 311  & 362  & 18 \\ \hline
+WA*(5.0)   & Manhattan    & 0.0020 & 813  & 934  & 28 \\ \hline
+\end{tabular}
+\caption{Benchmarks de l'algorithme A* et WA* sur une configuration initiale type}
+\end{table}
+
+\subsection{Analyse Critique}
+
+\begin{enumerate}
+    \item \textbf{Impact de l'Heuristique :} Le passage des "Jetons mal placés" à la "Distance de Manhattan" réduit le nombre de nœuds expanded de près de \textbf{90\%} (de 1891 à 191 pour A*). Cela confirme que Manhattan est une heuristique beaucoup plus "puissante" pour ce domaine.
+    \item \textbf{Gain de WA* :} Pour $p=1.5$ avec Manhattan, on trouve toujours la solution optimale (Depth 18) mais en n'explorant que \textbf{105 nœuds} au lieu de 191. C'est un gain d'efficacité significatif pour une perte d'optimalité nulle sur cet exemple.
+    \item \textbf{Dépassement de p :} À partir d'un certain seuil (ex: $p=5.0$), l'algorithme "se perd" en suivant trop agressivement l'heuristique au détriment du coût réel $g(x)$. On observe alors que la profondeur de la solution augmente (28 au lieu de 18), ce qui signifie que le chemin trouvé est \textbf{sous-optimal}.
+\end{enumerate}
+
+\section{Visualisation et Interaction}
+
+En complément de la version haute performance en C, nous avons développé une \textbf{interface Web interactive} utilisant JavaScript et HTML5 Canvas. Cette version permet de :
+\begin{itemize}
+    \item Visualiser en temps réel l'animation de la solution.
+    \item Régler dynamiquement le poids $p$ et la vitesse d'animation.
+    \item Générer des configurations aléatoires pour tester la robustesse des heuristiques.
+\end{itemize}
+
+Cette approche hybride (performance brute en C et pédagogie interactive en JS) permet une compréhension totale du problème et de ses solutions.
+
+\section{Conclusion}
+
+Ce travail pratique nous a permis de mettre en évidence l'importance capitale du choix de l'heuristique dans les algorithmes de recherche informée. L'implémentation d'un Tas Binaire a permis de lever les verrous de performance liés à la gestion de la file de priorité. Enfin, l'étude de Weighted A* a montré qu'il est possible d'accélérer la recherche de manière spectaculaire tout en contrôlant la qualité de la solution finale.
+
+\end{document}
