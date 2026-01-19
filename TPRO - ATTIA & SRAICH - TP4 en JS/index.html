@@ -1,66 +1,180 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TP4: Taquin 15 - Visualisation Interactive</title>
+    <title>TP4: Taquin 15 - Dashboard Pro</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
-    <div class="container">
-        <aside class="sidebar">
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
             <header>
-                <h1><i class="fas fa-puzzle-piece"></i> Taquin 15</h1>
-                <p>Equipe ATTIA & SRAICH</p>
+                <div class="logo">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Taquin 15</span>
+                </div>
+                <p class="subtitle">Equipe ATTIA & SRAICH</p>
             </header>
 
-            <section class="controls">
-                <h3><i class="fas fa-cog"></i> Configuration</h3>
-                
-                <div class="control-group">
-                    <label for="heuristic">Heuristique:</label>
-                    <select id="heuristic">
-                        <option value="manhattan">Dist. Manhattan (Optimale)</option>
-                        <option value="misplaced">Jetons mal placés</option>
-                    </select>
+            <ul class="nav-links">
+                <li class="active" data-tab="solver-view">
+                    <i class="fas fa-play-circle"></i> Solveur Interactif
+                </li>
+                <li data-tab="bench-current-view">
+                    <i class="fas fa-vial"></i> Benchmark Courant
+                </li>
+                <li data-tab="bench-general-view">
+                    <i class="fas fa-chart-bar"></i> Benchmark Général
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <p>Module TPRO - 2026</p>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="content">
+            <!-- VIEW 1: SOLVER -->
+            <section id="solver-view" class="view active">
+                <div class="view-header">
+                    <h2><i class="fas fa-gamepad"></i> Solveur & Configuration Manuelle</h2>
+                    <p>Mélangez le puzzle ou entrez votre propre configuration pour voir la résolution.</p>
                 </div>
 
-                <div class="control-group">
-                    <label for="weight-p">Poids WA* (p):</label>
-                    <input type="range" id="weight-p" min="1" max="10" step="0.5" value="1">
-                    <span id="p-value">1.0</span>
+                <div class="layout-grid">
+                    <div class="board-container">
+                        <div id="game-board" class="board clickable">
+                            <!-- Tiles generated here -->
+                        </div>
+                        <div class="manual-input-info">
+                            <i class="fas fa-info-circle"></i> Cliquez sur deux tuiles pour les échanger (Mode Manuel).
+                        </div>
+                    </div>
+
+                    <div class="params-panel">
+                        <div class="card">
+                            <h3><i class="fas fa-sliders-h"></i> Paramètres</h3>
+                            <div class="control-group">
+                                <label>Heuristique</label>
+                                <select id="heuristic">
+                                    <option value="manhattan">Distance de Manhattan</option>
+                                    <option value="misplaced">Jetons mal placés</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label>Poids WA* (p): <span id="p-value">1.0</span></label>
+                                <input type="range" id="weight-p" min="1" max="10" step="0.5" value="1">
+                            </div>
+                            <div class="control-group">
+                                <label>Vitesse d'animation</label>
+                                <input type="range" id="speed" min="1" max="1000" step="50" value="300">
+                            </div>
+                            <div class="actions">
+                                <button id="btn-shuffle" class="btn secondary"><i class="fas fa-random"></i>
+                                    Mélanger</button>
+                                <button id="btn-solve" class="btn primary"><i class="fas fa-play"></i> Résoudre</button>
+                                <button id="btn-reset" class="btn danger"><i class="fas fa-undo"></i> Reset</button>
+                            </div>
+                        </div>
+
+                        <div class="card stats-card">
+                            <h3><i class="fas fa-tachometer-alt"></i> Performance</h3>
+                            <div class="stats-grid">
+                                <div class="stat-box">
+                                    <span class="label">Temps</span>
+                                    <span id="stat-time" class="value">-</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="label">Nœuds</span>
+                                    <span id="stat-nodes" class="value">-</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="label">Profondeur</span>
+                                    <span id="stat-depth" class="value">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="control-group">
-                    <label for="speed">Vitesse Animation:</label>
-                    <input type="range" id="speed" min="1" max="1000" step="50" value="300">
-                </div>
-
-                <div class="button-group">
-                    <button id="btn-shuffle" class="btn-secondary"><i class="fas fa-random"></i> Mélanger</button>
-                    <button id="btn-solve" class="btn-primary"><i class="fas fa-play"></i> Résoudre</button>
-                    <button id="btn-reset" class="btn-danger"><i class="fas fa-undo"></i> Reset</button>
+                <div id="logs" class="logs-panel">
+                    <div class="logs-header"><i class="fas fa-terminal"></i> Console d'exécution</div>
+                    <div id="logs-content" class="logs-content"></div>
                 </div>
             </section>
 
-            <section class="stats">
-                <h3><i class="fas fa-chart-line"></i> Résultats</h3>
-                <div class="stat-item"><span>Temps:</span> <span id="stat-time">-</span></div>
-                <div class="stat-item"><span>Nœuds:</span> <span id="stat-nodes">-</span></div>
-                <div class="stat-item"><span>Profondeur:</span> <span id="stat-depth">-</span></div>
-            </section>
-        </aside>
+            <!-- VIEW 2: CURRENT BENCHMARK -->
+            <section id="bench-current-view" class="view">
+                <div class="view-header">
+                    <h2><i class="fas fa-flask"></i> Benchmark sur l'état actuel</h2>
+                    <p>Comparez les performances de A* et WA* sur la configuration affichée dans le solveur.</p>
+                </div>
 
-        <main class="main-content">
-            <div id="game-board" class="board">
-                <!-- Tiles will be generated here -->
-            </div>
-            <div id="logs" class="logs">
-                <p><i class="fas fa-terminal"></i> Prêt pour l'exécution...</p>
-            </div>
+                <div class="bench-actions">
+                    <button id="btn-run-current-bench" class="btn primary large">
+                        <i class="fas fa-rocket"></i> Lancer le comparatif (A*, WA* 1.5, WA* 3, WA* 5)
+                    </button>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="card table-card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Configuration</th>
+                                    <th>Heuristique</th>
+                                    <th>Temps (ms)</th>
+                                    <th>Nœuds</th>
+                                    <th>Profondeur</th>
+                                </tr>
+                            </thead>
+                            <tbody id="current-bench-body">
+                                <!-- Data rows here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card chart-card-fixed">
+                        <h3>Comparaison Nœuds Explorés</h3>
+                        <canvas id="current-bench-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 3: GENERAL BENCHMARK -->
+            <section id="bench-general-view" class="view">
+                <div class="view-header">
+                    <h2><i class="fas fa-globe"></i> Benchmark de Robustesse (Général)</h2>
+                    <p>Analyse statistique sur 10 grilles aléatoires de difficulté variée.</p>
+                </div>
+
+                <div class="bench-actions">
+                    <button id="btn-run-global-bench" class="btn accent large">
+                        <i class="fas fa-microchip"></i> Lancer l'analyse statistique
+                    </button>
+                </div>
+
+                <div class="charts-container">
+                    <div class="card chart-card-fixed">
+                        <h3>Evolution des Nœuds et de la Profondeur vs Poids p</h3>
+                        <canvas id="global-combined-chart"></canvas>
+                    </div>
+                </div>
+            </section>
         </main>
+    </div>
+    <!-- Overlay for loader during heavy bench -->
+    <div id="loader-overlay" class="loader-overlay hidden">
+        <div class="loader"></div>
+        <p>Analyse en cours... Veuillez patienter.</p>
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>
